@@ -29,10 +29,21 @@ server <- function(input,output) {
   
   DF  <- reactive({
     req(input$upload)
+    
     hh <- input$upload$datapath
     jj = read_excel(hh)
     DFWide = reshape(as.data.frame(jj), timevar = "Development Year", idvar = "Loss Year", direction = "wide")
-    DFWideC = as.data.frame(t(apply(DFWide[, -1], 1, cumsum)))
+    DFWide
+  })
+    
+    
+  DF2 <- reactive({
+    call_DF <- DF()
+    
+    cat("calculate DF2 \n")
+    
+    DFWideC = as.data.frame(t(apply(call_DF[, -1], 1, cumsum)))
+    
     
     count = 0
     
@@ -48,35 +59,47 @@ server <- function(input,output) {
       }
     }
     
-    DFWideC$Development_Year_4 <- rev(DFWideC)[1] * input$tail
+    DFWideC$Development_Year_4 <- rev(DFWideC)[[1]] * input$tail
     colnames(DFWideC) <- c("Development_Year_1", "Development_Year_2", "Development_Year_3", "Development_Year_4" )
-    table_ <- cbind(DFWide[1],DFWideC[])
+    table_ <- cbind(as.integer(call_DF[, 1]),DFWideC[])
     colnames(table_)[1] <- "Loss Year"
     table_
     
-  })
+  })  
   
+  #to tabulate the input data
   output$table <- renderTable({
-    DF()
+    
+    DF2()
     
   })
   
+ 
   data1 <- reactive ({
     
-    NewDF <- cbind(gather(table_[2:4], key = "Development_Year", value = "Cumulative", factor_key = T ), p[1])
+    dataframe0 <- DF()
+    dataframe <- DF2()
+    NewDF <- cbind(gather(dataframe[, 2:5], key = "Development_Year", value = "Cumulative", factor_key = T ), dataframe0[1])
     NewDF
     
   })
   
+  #to plot the table output 
   output$scatterplot <- renderPlot({
     
-    ggplot(data = data1(), mapping = aes(x = Development_Year, y = Cumulative, colour = NewDF$`Loss Year`, group = NewDF$`Loss Year`), theme = chartTheme("white"), title(main = "Graph of Cumulative Loss Claims"), xlab = "Development_Year", ylab = "Cumulative Loss CLaims") +
-      #geom_smooth(mapping = aes(x = NewDF$Development_Year, y = NewDF$Cumulative)) +
-      geom_smooth() +
-      geom_point(mapping = aes(x = NewDF$Development_Year, y = NewDF$Cumulative))  + labs(title = "Graph of Cumulative Loss Claims", x= "Development Year", y = "Cumulative Loss Claims") 
-    #theme(plot.title = element_text(hjust = 0.5), axis.text.x=element_text(color = "slategray4", size=8, angle=90, vjust=.8, hjust=0.8), plot.background = element_rect(fill = "floralwhite"), panel.background = element_rect(fill = "floralwhite", colour = "black"), 
-    #panel.border = element_rect(fill = "transparent",color = 4, size = 2))
+    graph_data <- data1()
     
+    
+    ggplot(data = graph_data, mapping = aes(x = Development_Year, y = Cumulative,  group = factor(round(`Loss Year`,0)), colour = factor(round(`Loss Year`,0)))) + 
+    geom_line() +
+    geom_point()  + 
+    labs(title = "Graph of Cumulative Paid Claims", x= "Development Year", y = "Cumulative Paid Claims", colour = "Loss Year", subtitle = "A Graph of Development Year vs Cumulative Paid Claims", caption = "R Shiny Assignment") +
+    theme(plot.title = element_text(hjust = 0.5), axis.text.x=element_text(color = "slategrey", size=8, vjust=.8, hjust=0.8), plot.background = element_rect(fill = "white"), panel.background = element_rect(fill = "snow2", colour = "black"), 
+    panel.border = element_rect(fill = "transparent",color = "gray70", size = 1), legend.position = c(.95, .95), legend.justification = c("right", "top"), legend.box.just = "right", legend.margin = margin(6, 6, 6, 6), panel.grid.major=element_line(colour="white"),panel.grid.minor=element_line(colour="white")) +
+    scale_linetype_manual(values = c("solid","dotted","dashed")) +
+    scale_color_manual(values=c("darkorange1","springgreen2","lightskyblue"))
+      
+   
     
     
   })
