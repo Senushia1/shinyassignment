@@ -16,7 +16,7 @@ ui <- fluidPage(
     h3("Input"),
     fileInput(inputId = "upload", label = "Upload a file"),
     h3("Tail"),
-    sliderInput(inputId = "tail", label = "Tail", value = 1.1, min = 0, max = 10, step = 0.1, animate = TRUE)
+    sliderInput(inputId = "tail", label = "Adjust the Tail", value = 1.1, min = 0, max = 10, step = 0.1, animate = TRUE)
   ),
   mainPanel(
     plotOutput(outputId = "scatterplot"),
@@ -104,7 +104,7 @@ server <- function(input,output) {
     ggplot(data = graph_data, mapping = aes(x = Development_Year, y = Cumulative,  group = factor(round(Loss_Year,0)), colour = factor(round(Loss_Year,0)))) + 
     geom_line() +
     geom_point()  + 
-    labs(title = "Graph of Cumulative Paid Claims", x= "Development Year", y = "Cumulative Paid Claims", colour = "Loss Year", subtitle = "A Graph of Development Year vs Cumulative Paid Claims", caption = "R Shiny Assignment") +
+    labs(title = "Graph of Cumulative Paid Claims", x= "Development Year", y = "Cumulative Paid Claims", colour = "Loss Year", subtitle = "A Graph of Cumulative Paid Claims vs. Development Year", caption = "R Shiny Assignment") +
     theme(plot.title = element_text(hjust = 0.5), axis.text.x=element_text(color = "slategrey", size=8, vjust=.8, hjust=0.8), plot.background = element_rect(fill = "white"), panel.background = element_rect(fill = "snow2", colour = "black"), 
     panel.border = element_rect(fill = "transparent",color = "gray70", size = 1), legend.position = c(.95, .95), legend.justification = c("right", "top"), legend.box.just = "right", legend.margin = margin(6, 6, 6, 6), panel.grid.major=element_line(colour="white"),panel.grid.minor=element_line(colour="white")) +
     scale_linetype_manual(values = c("dashed","dashed","dashed")) +
